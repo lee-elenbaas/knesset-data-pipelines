@@ -26,16 +26,28 @@ class ParseCommitteeMeetingSpeakersProcessor(BaseProcessor):
 
         text = object_storage.read(self.s3, "committees", file_object_path).decode()
 
-
         with CommitteeMeetingProtocol.get_from_text(text) as protocol:
             speakers = protocol.speakers
+            parts = protocol.parts
 
         if speakers is not None:
 
             for speaker in speakers:
+
+                spoke_count = 0
+
+                if parts is not None
+                    for part in parts
+                        if part is not None
+                          part_speaker = part.speaker
+
+                          if part_speaker == speaker
+                            spoke_count += 1
+
                 yield {"committee_id":committee_id,
                        "meeting_id":meeting_id,
-                       "name":speaker }
+                       "name":speaker,
+                       "spoke_count": spoke_count }
 
 
 if __name__ == "__main__":
