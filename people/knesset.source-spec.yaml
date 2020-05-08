@@ -37,10 +37,11 @@ committee-meeting-attendees:
       url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
 #  - run: filter
+#    cache: true
 #    parameters:
 #      resources: kns_committeesession
 #      in:
-#      - CommitteeSessionID: 2068104
+#      - CommitteeSessionID: 2059313
   - run: committee_meeting_attendees
 #    parameters:
 #      filter-meeting-id: [540838, 2025600, 2019698,2068132,2068104]
@@ -56,6 +57,53 @@ committee-meeting-attendees:
         people_committees_meeting_attendees:
           resource-name: kns_committeesession
 
+committee-meeting-speaker-stats:
+  description: extract stats for each protocol part
+  dependencies:
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - datapackage: data/members/mk_individual/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_factions
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_names
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/meeting-attendees/datapackage.json
+      resource: kns_committeesession
+#  - run: filter
+#    cache: true
+#    parameters:
+#      resources: kns_committeesession
+#      in:
+#      - CommitteeSessionID: 2059313
+#      - CommitteeSessionID: 86485
+#      - CommitteeSessionID: 2058899
+  - run: committee_meeting_speaker_stats
+    parameters:
+      # ratios for matching between header and category
+      MK_MATCH_RATIO: 80
+      LEGAL_ADVISOR_MATCH_RATIO: 80
+      INVITEE_MATCH_RATIO: 80
+      # ratios for matching between name_role and category
+      NAME_ROLE_DEFAULT_MATCH_RATIO: 80
+      NAME_ROLE_OFFICE_MATCH_RATIO: 75
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/committees/meeting-speaker-stats
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/meeting-speaker-stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_speaker_stats:
+          resource-name: speaker_stats
+
+## WIP
 #committee-meeting-speakers:
 #  description: extract all the spearker names from the meeting protocols
 #  piepline:

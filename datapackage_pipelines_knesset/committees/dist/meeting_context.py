@@ -8,7 +8,7 @@ from datapackage import Package
 
 # meetings which should be hidden for various reasons
 # data is still available, just the meeting html is not displayed
-HIDE_MEETING_IDS = [2072396]
+HIDE_MEETING_IDS = [2072396, 568058]
 
 
 def get_meeting_context_data():
@@ -26,6 +26,7 @@ def get_meeting_context_data():
 
 def get_meeting_context(meeting, context_data, use_data=True):
     context = get_context({"topics": meeting["topics"],
+                           "note": meeting.get("Note"),
                            "meeting_datestring": meeting["StartDate"].strftime("%d/%m/%Y"),
                            "member_url": MEMBER_URL,
                            "meeting_id": meeting["CommitteeSessionID"],

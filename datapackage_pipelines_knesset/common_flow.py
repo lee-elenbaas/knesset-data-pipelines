@@ -1,7 +1,13 @@
-from dataflows import PackageWrapper, load, Flow, cache
 from datapackage import Package
 import datetime
 import os
+import logging
+
+
+try:
+    from dataflows import PackageWrapper, load, Flow, cache
+except Exception:
+    pass
 
 
 def load_knesset_data(path, use_data=False, **kwargs):
@@ -11,10 +17,10 @@ def load_knesset_data(path, use_data=False, **kwargs):
 def get_knesset_data_url_or_path(path, use_data=False):
     if os.environ.get('KNESSET_PIPELINES_DATA_PATH') and use_data:
         url = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'], path)
-        print('loading from data path: {}'.format(url))
+        logging.info('loading from data path: {}'.format(url))
     else:
         url = 'https://storage.googleapis.com/knesset-data-pipelines/data/' + path
-        print('loading from url: {}'.format(url))
+        logging.info('loading from url: {}'.format(url))
     return url
 
 
@@ -87,6 +93,8 @@ def get_knessetdate(kns_knessetdates_sorted, event_date):
     for knessetdate in get_knessetdates_with_pagra(kns_knessetdates_sorted):
         if event_date <= knessetdate['finish_date']:
             return knessetdate
+    logging.warning('failed to get knessetdate for event_date: {}'.format(event_date))
+    return None
 
 
 def get_knessetdates_with_pagra(kns_knessetdates_sorted):

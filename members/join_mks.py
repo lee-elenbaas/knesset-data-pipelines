@@ -33,6 +33,10 @@ MK_INDIVIDUAL_PHOTO_MALE = 'https://oknesset.org/static/img/Male_portrait_placeh
 # https://commons.wikimedia.org/wiki/File:Female_portrait_placeholder_cropped.jpg
 MK_INDIVIDUAL_PHOTO_FEMALE = 'https://oknesset.org/static/img/Female_portrait_placeholder_cropped.jpg'
 
+MISSING_MK_INDIVIDUAL_IDS = [
+    '984'
+]
+
 
 @lru_cache(maxsize=1)
 def get_mks_extra():
@@ -144,7 +148,10 @@ def update_faction(faction_id, faction_name, start_date, finish_date, mk_id, kne
             faction_membership_days.setdefault(day_date, set()).add(mk_id)
         faction = factions.get(faction_id)
         if faction:
-            assert faction['name'] == faction_name, 'faction name mismatch ({}: {})'.format(faction_id, faction_name)
+            if faction['name'] != faction_name:
+                error_msg = 'faction name mismatch (knesset={} faction_id={} faction_name={} faction["name"]={})'.format(knesset, faction_id, faction_name, faction['name'])
+                if not knesset or int(knesset) < 21:
+                    raise Exception(error_msg)
             faction['knessets'].add(knesset)
             if faction['start_date'] > start_date:
                 faction['start_date'] = start_date
@@ -177,7 +184,7 @@ def get_person_positions(person_id, mk_individual_row):
                                                                             "CommitteeID", "CommitteeName")}
         if not parameters.get("filter-knesset-num") or int(mk_position["KnessetNum"]) in parameters["filter-knesset-num"]:
             position_id = int(kns_persontoposition_row["PositionID"])
-            position = kns_position[position_id]
+            position = kns_position.get(position_id, {'Description': str(position_id), 'GenderID': 252})
 
             mk_position.update(start_date=start_date,
                                finish_date=finish_date,
@@ -245,6 +252,9 @@ def get_mk_individual_positions_resource(resource):
         if not kns_person_id:
             kns_person_id, kns_person_row = find_matching_kns_person(mk_individual_row)
             if not kns_person_id or not kns_person_row:
+                if str(mk_individual_id) in MISSING_MK_INDIVIDUAL_IDS:
+                    logging.warning("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
+                    continue
                 raise Exception("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
         if parameters.get("filter-is-current") is None or kns_person_row["IsCurrent"] == parameters["filter-is-current"]:
             mk_individual_row.update(**kns_person_row)
